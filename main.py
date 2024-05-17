@@ -4,6 +4,7 @@ import requests
 app = Flask(__name__)
 
 APP_ACCESS_TOKEN = '21df8cc52d7af53986a8769ded1f78e0'
+VERIFY_TOKEN = 'YhQw8qN6RmBUUOQ'
 CRYPTO_API_URL = 'https://api.coingecko.com/api/v3'
 admins = ["ADMIN_USER_ID"]
 is_bot_active = True
@@ -38,7 +39,7 @@ def get_crypto_details(symbol):
 def send_message(recipient_id, message):
     data = {
         "recipient": {"id": recipient_id},
-        "message": {"text": "Personal Bot: " + message}  # Include bot name in the message
+        "message": {"text": "Personal Bot: " + message}
     }
     params = {"access_token": APP_ACCESS_TOKEN}
     response = requests.post("https://graph.facebook.com/v12.0/me/messages", json=data, params=params)
@@ -52,18 +53,13 @@ def stop_bot():
 @app.route('/', methods=['GET', 'POST'])
 def webhook():
     if request.method == 'GET':
-        # Facebook webhook verification
         verify_token = request.args.get('hub.verify_token')
         challenge = request.args.get('hub.challenge')
-        if verify_token == 'YOUR_VERIFY_TOKEN':
+        if verify_token == VERIFY_TOKEN:
             return challenge
         else:
             return 'Invalid verification token'
     elif request.method == 'POST':
-        if not is_bot_active:
-            return 'Bot is stopped'
-
-        # Handle incoming messages
         data = request.json
         for entry in data['entry']:
             messaging = entry.get('messaging')
@@ -74,13 +70,10 @@ def webhook():
                         message_text = event['message'].get('text')
                         group_id = event['recipient']['id']
 
-                        # Check if message is from a group
                         if 'group_id' in event:
-                            # Check for admin commands
                             if message_text.lower() == '/stopbot' and sender_id in admins:
                                 stop_bot()
                                 send_message(sender_id, "Bot has been stopped by the admin.")
-                            # Regular commands for users in the group
                             elif message_text.lower().startswith('/price'):
                                 parts = message_text.split()
                                 if len(parts) == 2:
@@ -114,13 +107,10 @@ def webhook():
                             elif message_text.lower().startswith('/mywallet'):
                                 if sender_id in user_wallets:
                                     wallet = user_wallets[sender_id]
-                                    # Fetch wallet balance and details (this requires integration with a blockchain API)
-                                    send_message(group_id, f"Your wallet address: {wallet}\n(Current balance fetching functionality needs to be implemented)")
+                                    send_message(group_id, f"Your wallet address is {wallet}")
                                 else:
-                                    send_message(group_id, "You have not added any wallet yet.")
-                            else:
-                                send_message(group_id, "Hi! I'm a cryptocurrency price tracker bot. Send '/price <crypto_symbol>' to get the current price.")
-        
+                                    send_message(group_id, "No wallet found. Add one using /addwallet <wallet_address>")
+
         return 'OK'
 
 if __name__ == '__main__':
