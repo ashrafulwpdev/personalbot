@@ -3,7 +3,7 @@ import requests
 
 app = Flask(__name__)
 
-APP_ACCESS_TOKEN = 'YOUR_APP_ACCESS_TOKEN'
+APP_ACCESS_TOKEN = '21df8cc52d7af53986a8769ded1f78e0'
 CRYPTO_API_URL = 'https://api.coingecko.com/api/v3'
 admins = ["ADMIN_USER_ID"]
 is_bot_active = True
